@@ -1,0 +1,32 @@
+{
+    "manifest_version": 3,
+    "name": "Odoo Live Support Tickets",
+    "version": "1.0",
+    "description": "Create tickets from discuss",
+    "permissions": [
+        "activeTab",
+        "scripting"
+    ],
+    "host_permissions": [
+        "*://*.odoo.com/*"
+    ],
+    "action": {
+        "default_popup": "popup.html"
+        
+    },
+    "background": {
+        "service_worker": "background.js"
+    },
+    "content_scripts": [
+        {
+            "matches": ["*://www.odoo.com/*"],
+            "js": ["content.js"]
+        }
+    ],
+    "icons": {
+    "16": "icon.png",
+    "32": "icon.png",
+    "48": "icon.png",
+    "128": "icon.png"
+  }
+}

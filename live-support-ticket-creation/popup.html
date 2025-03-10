@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Ticket From Live Support</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <form id="ticketForm">
+      <fieldset>
+        <legend>Ticket Type:</legend>
+    
+        <input type="radio" id="stage-func" name="stage" value="504" required />
+        <label for="stage-func">Functional</label><br />
+    
+        <input type="radio" id="stage-admin" name="stage" value="193" required/>
+        <label for="stage-admin">Administration</label><br />
+      </fieldset>
+      <br />
+    
+      <label for="title">Title:</label><br />
+      <input
+        type="text"
+        id="title"
+        name="title"
+        placeholder="Enter ticket title"
+        required
+      /><br /><br />
+    
+      <label for="descriptionInput">Ticket Description:</label><br />
+      <textarea
+        id="descriptionInput"
+        name="description"
+        placeholder="Enter ticket description"
+        required
+      ></textarea>
+    
+      <button type="submit" id="submitDescription">Submit</button>
+    </form>
+    
+    <br />
+    <span class="success-text hide">Success!!</span>
+    <span class="failed-text hide">ERROR: This page is not a valid chat</span>
+
+    <script src="popup.js"></script>
+  </body>
+</html>
