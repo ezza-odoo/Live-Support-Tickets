@@ -132,13 +132,14 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
               method: "create",
               args: [
                 {
-                  name: `LS - ${request.ticketTitle}`,
+                  name: request.ticketTitle,
                   project_id: 49,
                   description: description,
                   reviewer_id: null,
                   partner_id: customer_id,
+                  user_ids: [],
                   stage_id: stage,
-                  tag_ids: stage == 193? [2015]:null
+                  tag_ids: stage == 193? [2015,37442]:[37442]
                 },
               ],
               kwargs: {},
