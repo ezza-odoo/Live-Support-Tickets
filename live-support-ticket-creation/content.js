@@ -139,7 +139,8 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                   partner_id: customer_id,
                   user_ids: [],
                   stage_id: stage,
-                  tag_ids: stage == 193? [2015,37442]:[37442]
+                  tag_ids: stage == 193? [2015,37442]:[37442],
+                  message_partner_ids: [customer_id]
                 },
               ],
               kwargs: {},
