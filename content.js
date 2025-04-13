@@ -3,18 +3,20 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     try {
       function extractCustomer() {
         const emailRegex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g;
-        
-        // Get all <p> elements
-        const pElements = document.getElementsByTagName("p");
-        
-        // Extract text content from all <p> elements and join them with spaces
-        const allText = Array.from(pElements)
-            .map(el => el.textContent)
-            .join(" ");  // Join all <p> texts with spaces
+        const mRefRegex = /\bM\d{14}\b/gi;
 
-        // Find all email addresses and return the last one or null if none
-        const matches = allText.match(emailRegex);
-        return matches ? matches[matches.length - 1] : null;
+        const pElements = document.getElementsByTagName("p");
+        const allText = Array.from(pElements)
+          .map(el => el.textContent)
+          .join(" ");
+      
+        const emailMatches = allText.match(emailRegex);
+        const subscriptionMatches = allText.match(mRefRegex);
+      
+        return {
+          email: emailMatches ? emailMatches[emailMatches.length - 1] : null,
+          subscription: subscriptionMatches ? subscriptionMatches[subscriptionMatches.length - 1] : null,
+        };
       }
     
       function isWhatsappChat() {
@@ -23,8 +25,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         return /^\d+$/.test(titleElement.textContent.trim());
       }
 
-      async function getCustomer(csrfToken) {
-        const customerEmail = extractCustomer();
+      async function getCustomer(csrfToken,customerEmail) {
         
         if (!customerEmail) {
           throw new Error("No email address found in the conversation.");
@@ -40,7 +41,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
               [
                 ["email", "=", customerEmail],
                 ["active", "in", [true, false]],
-              ],
+              ]
             ],
             kwargs: {
               limit: 1,
@@ -71,6 +72,44 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         throw new Error(`No contact found with email: ${customerEmail}`);
       }
 
+      async function getSub(csrfToken, clientOrderRef) {
+        const payload = {
+          jsonrpc: "2.0",
+          method: "call",
+          params: {
+            model: "sale.order",
+            method: "search",
+            args: [
+              [
+                ["client_order_ref", "=", clientOrderRef],
+                ["database_ids", "!=", false]
+              ]
+            ],
+            kwargs: {
+              limit: 1,
+            },
+          },
+          id: Date.now(),
+        };
+
+        const response = await fetch("/web/dataset/call_kw", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-CSRF-Token": csrfToken,
+          },
+          credentials: "include",
+          body: JSON.stringify(payload),
+        });
+
+        const result = await response.json();
+        console.log("Sale order lookup:", result);
+        if (result.result && result.result.length > 0) {
+          return result.result[0];
+        }
+        return null;
+      }
+      const { email, subscription } = extractCustomer();
       const description = `<a href="${
         window.location.href
       }"><strong>Conversation</strong></a> <br> ${
@@ -122,8 +161,8 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         }
         
         try {
-          customer_id = await getCustomer(csrfToken);
-          
+          const customer_id = await getCustomer(csrfToken,email);
+          const subscription_id = subscription? await getSub(csrfToken,subscription): null;
           const payload = {
             jsonrpc: "2.0",
             method: "call",
@@ -140,7 +179,8 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                   user_ids: [],
                   stage_id: stage,
                   tag_ids: stage == 193? [2015,37442]:[37442],
-                  message_partner_ids: [customer_id]
+                  message_partner_ids: [customer_id],
+                  mnt_subscription_id: subscription_id
                 },
               ],
               kwargs: {},

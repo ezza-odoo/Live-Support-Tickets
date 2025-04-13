@@ -4,29 +4,31 @@
     "version": "1.0",
     "description": "Create tickets from discuss",
     "permissions": [
-        "activeTab",
-        "scripting"
+      "activeTab",
+      "scripting",
+      "tabs",
+      "windows"
     ],
     "host_permissions": [
-        "*://*.odoo.com/*"
+      "*://*.odoo.com/*"
     ],
     "action": {
-        "default_popup": "popup.html"
-        
+      "default_title": "Open Ticket Form"
     },
     "background": {
-        "service_worker": "background.js"
+      "service_worker": "background.js"
     },
     "content_scripts": [
-        {
-            "matches": ["*://www.odoo.com/*"],
-            "js": ["content.js"]
-        }
+      {
+        "matches": ["*://www.odoo.com/*"],
+        "js": ["content.js"]
+      }
     ],
     "icons": {
-    "16": "icon.png",
-    "32": "icon.png",
-    "48": "icon.png",
-    "128": "icon.png"
+      "16": "icon.png",
+      "32": "icon.png",
+      "48": "icon.png",
+      "128": "icon.png"
+    }
   }
-}
+  
