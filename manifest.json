@@ -19,10 +19,11 @@
       "service_worker": "background.js"
     },
     "content_scripts": [
-      {
-        "matches": ["*://www.odoo.com/*"],
-        "js": ["content.js"]
-      }
+    {
+        "matches": ["*://*.odoo.com/*"],
+        "js": ["content.js"],
+        "run_at": "document_idle"
+    }
     ],
     "icons": {
       "16": "icon.png",

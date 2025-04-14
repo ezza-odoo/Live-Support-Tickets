@@ -3,7 +3,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     try {
       function extractCustomer() {
         const emailRegex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g;
-        const mRefRegex = /\bM\d{14}\b/gi;
+        const mRefRegex = /\bM\d{10,20}\b/g;
 
         const pElements = document.getElementsByTagName("p");
         const allText = Array.from(pElements)
@@ -81,12 +81,13 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
             method: "search",
             args: [
               [
-                ["client_order_ref", "=", clientOrderRef],
+                ["display_name", "ilike", clientOrderRef],
                 ["database_ids", "!=", false]
               ]
             ],
             kwargs: {
               limit: 1,
+              order: "create_date desc",
             },
           },
           id: Date.now(),
