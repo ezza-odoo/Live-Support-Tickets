@@ -15,51 +15,80 @@ document.getElementById("ticketForm").addEventListener("submit", (event) => {
   document.body.appendChild(loadingElement);
   adjustPopupSize();
 
-  chrome.tabs.query({}, (tabs) => {
-    const odooTab = tabs.find((tab) => {
-      if (!tab.url) return false;
-      try {
-        const url = new URL(tab.url);
-        return (
-          url.hostname === "www.odoo.com" &&
-          (url.searchParams.has("active_id") ||
-           url.href.includes("odoo.com/odoo/discuss") ||
-           url.href.includes("action_discuss"))
-        );
-      } catch {
-        return false;
-      }
-    });
-
-    if (odooTab) {
-      try {
-        chrome.tabs.sendMessage(
-          odooTab.id,
-          { message: description, ticketType: ticketStage, ticketTitle: ticketTitle },
-          (response) => {
-            document.body.removeChild(loadingElement);
-
-            if (chrome.runtime.lastError) {
-              console.error("Message error:", chrome.runtime.lastError.message);
-              showError("Failed to communicate with the page. Please try again.");
-            } else if (response && response.success) {
-              showSuccess(response.ticket);
-            } else {
-              console.error("Error from content script:", response?.error || "Unknown error");
-              showError(response?.error || "An unknown error occurred");
-            }
-          }
-        );
-      } catch (err) {
-        document.body.removeChild(loadingElement);
-        console.error("Error preparing message:", err);
-        showError("Something went wrong while preparing the request.");
-      }
+  chrome.storage.local.get("lastActiveTabId", ({ lastActiveTabId }) => {
+    if (lastActiveTabId) {
+      chrome.tabs.get(lastActiveTabId, (tab) => {
+        if (chrome.runtime.lastError) {
+          console.warn("Failed to access stored tab:", chrome.runtime.lastError.message);
+          fallbackSearch();
+        } else if (isOdooDiscussTab(tab)) {
+          sendToOdooTab(tab);
+        } else {
+          fallbackSearch();
+        }
+      });
     } else {
-      document.body.removeChild(loadingElement);
-      showError("No Odoo Discuss tab found. Please open it and try again.");
+      fallbackSearch();
     }
   });
+
+  // Step 2: Fallback to scan all tabs
+  function fallbackSearch() {
+    chrome.tabs.query({}, (allTabs) => {
+      const odooTab = allTabs.find(isOdooDiscussTab);
+      if (odooTab) {
+        sendToOdooTab(odooTab);
+      } else {
+        document.body.removeChild(loadingElement);
+        showError("No Odoo Discuss tab found. Please open it and try again.");
+      }
+    });
+  }
+
+  // Tab validation logic
+  function isOdooDiscussTab(tab) {
+    if (!tab.url) return false;
+    try {
+      const url = new URL(tab.url);
+      return (
+        url.hostname === "www.odoo.com" &&
+        (
+          url.searchParams.has("active_id") ||
+          url.href.includes("odoo.com/odoo/discuss") ||
+          url.href.includes("action_discuss")
+        )
+      );
+    } catch {
+      return false;
+    }
+  }
+
+  // Send message to tab
+  function sendToOdooTab(tab) {
+    try {
+      chrome.tabs.sendMessage(
+        tab.id,
+        { message: description, ticketType: ticketStage, ticketTitle: ticketTitle },
+        (response) => {
+          document.body.removeChild(loadingElement);
+
+          if (chrome.runtime.lastError) {
+            console.error("Message error:", chrome.runtime.lastError.message);
+            showError("Error reaching chat: Ensure that the open Discuss tab has an active chat.");
+          } else if (response && response.success) {
+            showSuccess(response.ticket);
+          } else {
+            console.error("Error from content script:", response?.error || "Unknown error");
+            showError(response?.error || "An unknown error occurred");
+          }
+        }
+      );
+    } catch (err) {
+      document.body.removeChild(loadingElement);
+      console.error("Error preparing message:", err);
+      showError("Something went wrong while preparing the request.");
+    }
+  }
 });
 
 function adjustPopupSize() {
