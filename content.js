@@ -18,7 +18,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
           subscription: subscriptionMatches ? subscriptionMatches[subscriptionMatches.length - 1] : null,
         };
       }
-    
+      console.log("important change")
       function isWhatsappChat() {
         const titleElement = document.querySelector("title");
         if (!titleElement) return false;
