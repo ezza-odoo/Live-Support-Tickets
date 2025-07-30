@@ -205,11 +205,13 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
           if (result.error) {
             sendResponse({ success: false, error: result.error.data.message });
           } else {
+            const url = `https://www.odoo.com/odoo/project.task/${result.result}`;
             sendResponse({
               success: true,
               taskId: result.result,
-              ticket: `https://www.odoo.com/odoo/project.task/${result.result}`,
+              ticket: url,
             });
+            window.open(url, '_blank');
           }
         } catch (error) {
           // This will send the error to popup.js for red error display
