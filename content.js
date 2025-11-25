@@ -111,11 +111,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         return null;
       }
       const { email, subscription } = extractCustomer();
-      const description = `<a href="${
-        window.location.href
-      }"><strong>Conversation</strong></a> <br> ${
-        request.message ? request.message : ""
-      }`;
+      const description = `<a href="${window.location.href}"><strong>Conversation</strong></a><br><pre>${request.message ? request.message : ""}</pre>`;
       const stage = parseInt(request.ticketType)
       if (window.location.hostname.includes("odoo.com")) {
         let csrfToken = null;
